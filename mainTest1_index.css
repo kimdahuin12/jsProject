@@ -1,0 +1,58 @@
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+    body {
+        overflow:hidden;
+        height: 760px;
+        width: 100%;
+        margin: 0;
+        background-image: url("./img/background.png");
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
+    button{
+        background-color: transparent;
+        border: transparent;
+    }
+
+    @keyframes go-margin-left{        /* 애니메이션 이름*/
+        from { margin-left: 0px; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-left: 100%; } /* margin-left 값이 100%-50px 될 때까지 애니메이션 적용 */
+      }
+      @keyframes go-margin-right{        /* 애니메이션 이름*/
+        from { margin-right: 0px; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-right: 100%; } /* margin-left 값이 100%-50px 될 때까지 애니메이션 적용 */
+      }
+      @keyframes go-padding-top{    
+        from { padding-top: 0px; }          
+        to { padding-top: 100%; } /* 2000은 title 이미지의 넓이*/
+      }
+      @keyframes go-margin-top{    
+        from { margin-top: 0px; }          
+        to { margin-top: 100%; } 
+      }
+
+    .gameTitle{
+        padding-top: 100px;
+        text-align: center;
+    }
+    .gameTitle img{
+        width: 400px;
+    }
+    .btnAbove{
+        margin-left :0;
+        padding-top:100px;
+        text-align: center;
+    }
+    .btnBelow{
+        margin-top: 10px;
+        text-align: center;
+    }
+    .btnAbove img{
+        width: 250px;
+    }
+    .btnBelow img{
+        width: 110px;
+    }
+    
