@@ -12,14 +12,19 @@ spriteChimpanzee.src = "./img/enemy_1.png";
 var spriteBonusChimpanz = new Image();
 spriteBonusChimpanz.src = "./img/enemy_2.png";
 
+const chimpenz_id_bonus = 601;
+const chimpenz_id_basic = 602;
+
 class Chimpanzee {
     //침팬지를 생성하는 클래스
-    constructor(x, y, spriteImg){
+    constructor(x, y, spriteImg, id){
         this.x = x;
         this.y = y;
         this.width = spriteImg.width;
         this.height = spriteImg.height;
         this.spriteImg = spriteImg;
+        this.alive = true;
+        this.id = id;
     }
     draw(){
         ctx.drawImage(this.spriteImg, 0, 0, this.width, this.height, this.x, this.y, this.width, this.height);
@@ -37,23 +42,29 @@ let canvas = document.createElement("canvas");
 canvas.id = "gameCanvas";
 canvas.width = 1900/5;
 canvas.height = 1080/5;
-//게임 시작 버튼 눌렀을때
+//게임 시작 버튼 눌렀을때(게임 시작 부분)
 gameStartBtn.onclick= function(){
     mainBtnClickEvent();
     setTimeout(()=>mainScreen.remove(), 1800); //버튼들이 사라지는데 2초정도 걸림. 그래서 조금 더 빨리 메인의 버튼들을 모두 없앰.(mainScreen은 메인화면)
     //기다린 후 canvas를 붙여주고 게임을 실행한다.
     setTimeout(()=> {
         body.prepend(canvas);
-        gameInit();
+        gameInit(); //게임에 필요한 것들을 초기화.
         gameRefresh(); //update, render를 반복적으로 실행.
     }, 500);
 }
 //게임에서 필요한 것들을 선언함.
 var lastTime  = Date.now();
-var wakgood; //d
+var wakgood; //플레이어.
 var punch = false;
 var lastime = Date.now();
 var chimpanzees = [];
+var score = 0;
+
+//키 입력 관련 선언
+var keyD = false;
+var keyS = false;
+var keyW = false;
 
 //애니메이션
 var ctx = canvas.getContext('2d');
@@ -105,14 +116,9 @@ function gameInit(){
                 case run1State : this.state = run2State; break;
                 case run2State : this.state = run1State; break;
             } 
+            console.log("score:"+score);
         },
     }
-    // chimpanzees.push(new Chimpanzee(80, 150));
-    // // chimpanzees.push(new Chimpanzee(80, 90));
-    // // chimpanzees.push(new Chimpanzee(80, 30));
-    // chimpanzees.push(new Chimpanzee(130, 150));
-    // // chimpanzees.push(new Chimpanzee(130, 90));
-    // // chimpanzees.push(new Chimpanzee(130, 30));
     chimpanzeeRandLocProduce(80); //침팬지 랜덤 생성 함수
 }
 
@@ -128,12 +134,17 @@ function gameRefresh(){
     })
 }
 var punchTime = 0;
+var sequencePnchT = 0; //연속 펀치 가능 시간
+var punchSequence = false; //연속 펀치 가능
 function gameUpdate(dt){
+    keyProcess();
     sinceLastTime += dt;
     if(sinceLastTime > 100){
         //0.2초 정도 지날때마다 wakgood update();
         wakgood.update();
         sinceLastTime = 0;
+        
+        //플레이어가 자동으로 움직여지는 부분이다.
         if(chimpanzees[0]!=null){
             if(chimpanzees[0].x <= wakgood.x+20){ //침팬지 앞에서 멈추기.
                 wakgood.state = standBasicState;
@@ -146,7 +157,8 @@ function gameUpdate(dt){
             }
         }
 
-        if(chimpanzees[0]==null){ //침팬지 모두 없앰. 화면 전환
+        //화면 전환(침팬지 모두 없앰. )
+        if(chimpanzees[0]==null){ 
             chimpanzeeRandLocProduce(40);
             wakgood.x = 0;
             wakgood.y = 130;
@@ -156,28 +168,36 @@ function gameUpdate(dt){
         }
 
     }
+    if(sequencePnchT > 1){ //1초 안지났을때 다시 
 
-    if(wakgood.punch == true){
-        if(chimpanzees[0]!=null){ //한 개 이상의 침팬지가 있어야함
-            if(wakgood.x >= chimpanzees[0].x-5 && wakgood.y == chimpanzees[0].y-20){
-                    chimpanzees.splice(0, 1); //맨 앞의 한개의 값 삭제'
-                    wakgood.state = punchState;
-            }else if(wakgood.state != punchState){
-                wakgood.x+=5;
-            }
-        }
-        if(punchTime >= 200){ //0.2초
-            wakgood.x+=5;
-            wakgood.state = standBasicState;
-            wakgood.punch = false;
-            punchTime = 0;
-        }else{
-            punchTime+=dt;
-        }
     }
-    // chimpanzee2.draw();
-    // chimpanzee3.draw();
+    //침팬지 공격 관련
+    if(wakgood.punch == true){
+        chimpenzPunch(dt);
+        sequencePnchT = 0;
+    }else{
+        // if(chimpanzees[0].id == chimpenz_id_bonus && !punchSequence){ //보너스 침팬지이고 연속펀치 아직 불가능
+        //         sequencePnchT+=dt; //연속 펀치 가능 시간 재기
+        // }else if(chimpanzees[0].id == chimpenz_id_bonus && punchSequence){
+
+        // }
+        if(chimpanzees[0]!=null){ //한 개 이상의 침팬지가 있어야함
+            if(!chimpanzees[0].alive){
+                chimpanzees.splice(0, 1); //맨 앞의 한개의 침팬지 삭제'
+            }
+            // if(wakgood.x){
+            //     if(chimpanzees[0].id == chimpenz_id_bonus && !punchSequence){ //보너스 침팬지이고 연속펀치 아직 불가능
+            //         sequencePnchT+=dt; //연속 펀치 가능 시간 재기
+    
+            //     }else if(chimpanzees[0].id == chimpenz_id_basic){ //기본 침팬지면 바로 삭제
+            //         chimpanzees.splice(0, 1); //맨 앞의 한개의 침팬지 삭제'
+            //     }
+            //}
+        }
+        
+    }
 }
+
 
 function gameRender(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -191,28 +211,51 @@ function gameRender(){
     // }
 }
 
+function chimpenzPunch(dt){
+    //펀치 모션을 위한 함수
+    if(wakgood.x >= chimpanzees[0].x-5 && wakgood.y == chimpanzees[0].y-20){
+        if(chimpanzees[0].id == chimpenz_id_basic){ chimpanzees[0].alive = false;}
+        wakgood.state=punchState;
+    }else if(wakgood.state != punchState){ //앞에 침팬지가 없다.
+        wakgood.x+=8;
+    }
+
+    if(wakgood.state==punchState){
+        if(punchTime >= 200){ //0.2초
+            wakgood.x+=5;
+            wakgood.state = standBasicState;
+            wakgood.punch = false;
+            punchTime = 0;
+        }else{
+            punchTime+=dt;
+        }
+    }
+
+}
+
 //보너스 침팬지는 침팬지가 30번 나오는동안 한 번 나온다.
-var bnsChimpzPrdcIdx = Math.floor(Math.random()*30)+1; // 1~ 30 중 하나
+var bnsChimpzPrdcIdx = Math.floor(Math.random()*50)+1; // 1~ 50 중 하나
 var chimxPrdcIdx = 0;
 
-//침팬지를 한 화면에 x좌표부터 채워 넣음
-function chimpanzeeRandLocProduce(startX){
-    var y, rand;
 
+//침팬지들을 생성하는 함수
+function chimpanzeeRandLocProduce(startX){
+    //침팬지를 한 화면에 x좌표부터 채워 넣음
+    var y, rand;
     //랜덤한 y좌표의 침팬지들을 생성한다.(화면이 전환될때 사용)
     for(var x = startX; x <= canvas.width-60; x+=30){ //30은 원숭이 간격. 화면의 끝까지 침팬지 생성ㄴ
         //150(맨 아래), 90(중간), 30(맨 위) 중에서 랜덤으로 나온다.(2은 150, 0는 90, 0은 30)
         y = 30 + (Math.floor(Math.random()*3)*60); //0~2까지의 난수 발생시키고 60을 곱해준 수를 30에  더한다.
         chimxPrdcIdx++;
         if(chimxPrdcIdx != bnsChimpzPrdcIdx){ //일반 침팬지 생성
-            chimpanzees.push(new Chimpanzee(x, y, spriteChimpanzee));//랜덤한 장소에 생성
+            chimpanzees.push(new Chimpanzee(x, y, spriteChimpanzee, chimpenz_id_basic));//랜덤한 장소에 생성
         }else{
             //보너스 침팬지 생성
-            chimpanzees.push(new Chimpanzee(x, y, spriteBonusChimpanz));
+            chimpanzees.push(new Chimpanzee(x, y, spriteBonusChimpanz, chimpenz_id_bonus));
         }
-        if(chimxPrdcIdx == 30){
-            //침팬지가 30번 나왔으면 다시 랜덤한 보너스 침팬지 idx생성
-            bnsChimpzPrdcIdx = Math.floor(Math.random()*30)+1;
+        if(chimxPrdcIdx == 50){
+            //침팬지가 50번 나왔으면 다시 랜덤한 보너스 침팬지 idx생성
+            bnsChimpzPrdcIdx = Math.floor(Math.random()*50)+1;
             chimxPrdcIdx = 0;
         }
     }
@@ -229,30 +272,39 @@ function mainBtnClickEvent(){
     gameTitle.style.animation = 'go-padding-top 2s';
 }
 
-
-
-document.addEventListener('keydown', function(e){
-
-    if(e.code === 'KeyD'){
+function keyProcess(){
+    //키 입력 처리를 이곳에서 한다.
+    if(keyD){
         wakgood.y = 130;
         if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
             wakgood.punch = true;
             wakgood.punchType = bottomPunch;
         }
+        keyD = false;
     }
-    if(e.code === 'KeyS'){
+    if(keyS){
         wakgood.y = 70;
         if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
             wakgood.punch = true;
             wakgood.punchType = midPunch;    
         }
+        keyS = false;
     }
     
-    if(e.code === 'KeyW'){
+    if(keyW){
         wakgood.y = 10;
         if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
             wakgood.punch = true;
             wakgood.punchType = topPunch;
         }
+        keyW = false;
     }
+}
+
+
+document.addEventListener('keydown', function(e){
+
+    if(e.code === 'KeyD'){  keyD = true; }
+    if(e.code === 'KeyS'){ keyS = true; }
+    if(e.code === 'KeyW'){ keyW = true; }
 })
