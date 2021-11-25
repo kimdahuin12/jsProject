@@ -9,17 +9,20 @@ var spritePunchImg = new Image();
 spritePunchImg.src = "./img/punchBasic.png"
 var spriteChimpanzee = new Image();
 spriteChimpanzee.src = "./img/enemy_1.png";
+var spriteBonusChimpanz = new Image();
+spriteBonusChimpanz.src = "./img/enemy_2.png";
 
 class Chimpanzee {
     //침팬지를 생성하는 클래스
-    constructor(x, y){
+    constructor(x, y, spriteImg){
         this.x = x;
         this.y = y;
-        this.width = spriteChimpanzee.width;
-        this.height = spriteChimpanzee.height;
+        this.width = spriteImg.width;
+        this.height = spriteImg.height;
+        this.spriteImg = spriteImg;
     }
     draw(){
-        ctx.drawImage(spriteChimpanzee, 0, 0, this.width, this.height, this.x, this.y, this.width, this.height);
+        ctx.drawImage(this.spriteImg, 0, 0, this.width, this.height, this.x, this.y, this.width, this.height);
     }
 }
 
@@ -42,7 +45,7 @@ gameStartBtn.onclick= function(){
     setTimeout(()=> {
         body.prepend(canvas);
         gameInit();
-        gameRefresh(); //update, render 
+        gameRefresh(); //update, render를 반복적으로 실행.
     }, 500);
 }
 //게임에서 필요한 것들을 선언함.
@@ -97,8 +100,6 @@ function gameInit(){
             // 출처: https://devjhs.tistory.com/577 [키보드와 하루]
         },
         update(){
-           
-
             //달리기부분
             switch(this.state){
                 case run1State : this.state = run2State; break;
@@ -112,7 +113,7 @@ function gameInit(){
     // chimpanzees.push(new Chimpanzee(130, 150));
     // // chimpanzees.push(new Chimpanzee(130, 90));
     // // chimpanzees.push(new Chimpanzee(130, 30));
-    chimpanzeeRandLocProduce(80);
+    chimpanzeeRandLocProduce(80); //침팬지 랜덤 생성 함수
 }
 
 function gameRefresh(){
@@ -138,8 +139,10 @@ function gameUpdate(dt){
                 wakgood.state = standBasicState;
                 wakgood.startGame = false;
             }
-            else if(wakgood.startGame){
-                wakgood.x+=3; //침팬지 앞이 아니라면 이동. 그리고 시작할때만
+            else {
+                if(wakgood.state == standBasicState){ wakgood.state = run1State;}
+                console.log("x+=3");
+                wakgood.x+=5; //침팬지 앞이 아니라면 이동. 그리고 시작할때만
             }
         }
 
@@ -149,6 +152,7 @@ function gameUpdate(dt){
             wakgood.y = 130;
             wakgood.startGame = true;
             wakgood.state = run1State;
+            wakgood.punch = false;
         }
 
     }
@@ -187,13 +191,30 @@ function gameRender(){
     // }
 }
 
+//보너스 침팬지는 침팬지가 30번 나오는동안 한 번 나온다.
+var bnsChimpzPrdcIdx = Math.floor(Math.random()*30)+1; // 1~ 30 중 하나
+var chimxPrdcIdx = 0;
+
+//침팬지를 한 화면에 x좌표부터 채워 넣음
 function chimpanzeeRandLocProduce(startX){
     var y, rand;
+
     //랜덤한 y좌표의 침팬지들을 생성한다.(화면이 전환될때 사용)
-    for(var x = startX; x <= canvas.width-60; x+=20){ //30은 원숭이 간격. 화면의 끝까지 침팬지 생성ㄴ
+    for(var x = startX; x <= canvas.width-60; x+=30){ //30은 원숭이 간격. 화면의 끝까지 침팬지 생성ㄴ
         //150(맨 아래), 90(중간), 30(맨 위) 중에서 랜덤으로 나온다.(2은 150, 0는 90, 0은 30)
         y = 30 + (Math.floor(Math.random()*3)*60); //0~2까지의 난수 발생시키고 60을 곱해준 수를 30에  더한다.
-        chimpanzees.push(new Chimpanzee(x, y));//랜덤한 장소에 생성
+        chimxPrdcIdx++;
+        if(chimxPrdcIdx != bnsChimpzPrdcIdx){ //일반 침팬지 생성
+            chimpanzees.push(new Chimpanzee(x, y, spriteChimpanzee));//랜덤한 장소에 생성
+        }else{
+            //보너스 침팬지 생성
+            chimpanzees.push(new Chimpanzee(x, y, spriteBonusChimpanz));
+        }
+        if(chimxPrdcIdx == 30){
+            //침팬지가 30번 나왔으면 다시 랜덤한 보너스 침팬지 idx생성
+            bnsChimpzPrdcIdx = Math.floor(Math.random()*30)+1;
+            chimxPrdcIdx = 0;
+        }
     }
 }
 
@@ -207,6 +228,8 @@ function mainBtnClickEvent(){
     gameStartBtn.style.animation = 'go-margin-top 2s';
     gameTitle.style.animation = 'go-padding-top 2s';
 }
+
+
 
 document.addEventListener('keydown', function(e){
 
