@@ -40,8 +40,8 @@ let gameRoleBtn = document.querySelector(".gameRoleBtn");
 let gameTitle = document.querySelector(".gameTitle");
 let canvas = document.createElement("canvas");
 canvas.id = "gameCanvas";
-canvas.width = 1900/5;
-canvas.height = 1080/5;
+canvas.width = 1900/4.8;
+canvas.height = 1080/4.8;
 //게임 시작 버튼 눌렀을때(게임 시작 부분)
 gameStartBtn.onclick= function(){
     mainBtnClickEvent();
@@ -146,13 +146,12 @@ function gameUpdate(dt){
         
         //플레이어가 자동으로 움직여지는 부분이다.
         if(chimpanzees[0]!=null){
-            if(chimpanzees[0].x <= wakgood.x+20){ //침팬지 앞에서 멈추기.
+            if(wakgood.x+20 >= chimpanzees[0].x){ //침팬지 앞에서 멈추기.
                 wakgood.state = standBasicState;
                 wakgood.startGame = false;
             }
             else {
                 if(wakgood.state == standBasicState){ wakgood.state = run1State;}
-                console.log("x+=3");
                 wakgood.x+=5; //침팬지 앞이 아니라면 이동. 그리고 시작할때만
             }
         }
@@ -213,7 +212,7 @@ function gameRender(){
 
 function chimpenzPunch(dt){
     //펀치 모션을 위한 함수
-    if(wakgood.x >= chimpanzees[0].x-5 && wakgood.y == chimpanzees[0].y-20){
+    if(collisionCheck(wakgood.x-5, wakgood.y, chimpanzees[0].x, chimpanzees[0].y)){
         if(chimpanzees[0].id == chimpenz_id_basic){ chimpanzees[0].alive = false;}
         wakgood.state=punchState;
     }else if(wakgood.state != punchState){ //앞에 침팬지가 없다.
@@ -243,7 +242,7 @@ function chimpanzeeRandLocProduce(startX){
     //침팬지를 한 화면에 x좌표부터 채워 넣음
     var y, rand;
     //랜덤한 y좌표의 침팬지들을 생성한다.(화면이 전환될때 사용)
-    for(var x = startX; x <= canvas.width-60; x+=30){ //30은 원숭이 간격. 화면의 끝까지 침팬지 생성ㄴ
+    for(var x = startX; x <= canvas.width-30; x+=30){ //30은 원숭이 간격. 화면의 끝까지 침팬지 생성ㄴ
         //150(맨 아래), 90(중간), 30(맨 위) 중에서 랜덤으로 나온다.(2은 150, 0는 90, 0은 30)
         y = 30 + (Math.floor(Math.random()*3)*60); //0~2까지의 난수 발생시키고 60을 곱해준 수를 30에  더한다.
         chimxPrdcIdx++;
@@ -272,39 +271,55 @@ function mainBtnClickEvent(){
     gameTitle.style.animation = 'go-padding-top 2s';
 }
 
-function keyProcess(){
-    //키 입력 처리를 이곳에서 한다.
-    if(keyD){
-        wakgood.y = 130;
-        if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
-            wakgood.punch = true;
-            wakgood.punchType = bottomPunch;
-        }
-        keyD = false;
+//캐릭터와 적의 충돌 여부 확인
+function collisionCheck(x, y, enemyX, enemyY){
+    if(enemyX-20 <= x && enemyX+40 >= x && y >= enemyY-20 && y <= enemyY+20 && y >= enemyY-20){
+        return true;
     }
-    if(keyS){
-        wakgood.y = 70;
-        if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
-            wakgood.punch = true;
-            wakgood.punchType = midPunch;    
-        }
-        keyS = false;
-    }
-    
-    if(keyW){
-        wakgood.y = 10;
-        if(chimpanzees[0].x <= wakgood.x+20 &&wakgood.y == chimpanzees[0].y-20){
-            wakgood.punch = true;
-            wakgood.punchType = topPunch;
-        }
-        keyW = false;
-    }
+    else { false; }
 }
 
 
-document.addEventListener('keydown', function(e){
+//키 입력 처리
+function keyProcess(){
 
-    if(e.code === 'KeyD'){  keyD = true; }
-    if(e.code === 'KeyS'){ keyS = true; }
-    if(e.code === 'KeyW'){ keyW = true; }
+    //펀치 3가지
+    if(keyD){
+        wakgood.y = 130;
+        if(collisionCheck(wakgood.x, wakgood.y, chimpanzees[0].x, chimpanzees[0].y) && !wakgood.punch){
+            wakgood.punch = true; wakgood.punchType = bottomPunch;
+        }
+        keyD = false;
+    }
+    else if(keyS){
+        wakgood.y = 70;
+        if(collisionCheck(wakgood.x, wakgood.y, chimpanzees[0].x, chimpanzees[0].y) && !wakgood.punch){
+            wakgood.punch = true; wakgood.punchType = midPunch;    
+        }
+        keyS = false;
+    }
+    else if(keyW){
+        wakgood.y = 10;
+        if(collisionCheck(wakgood.x, wakgood.y, chimpanzees[0].x, chimpanzees[0].y) && !wakgood.punch){
+            wakgood.punch = true; wakgood.punchType = topPunch;
+        }
+        keyW = false;
+    }
+
+}
+
+document.addEventListener('keydown', function(e){
+    if(e.code === 'KeyD' && punchKeyInputPssible()){  keyD = true; }
+    if(e.code === 'KeyS'&& punchKeyInputPssible()){ keyS = true; }
+    if(e.code === 'KeyW'&& punchKeyInputPssible()){ keyW = true; }
 })
+
+
+//펀치 키를 누를 수 있는지의 여부를 리턴함
+function punchKeyInputPssible(){
+    //펀치 키가 모두 안눌려있고 왁굳(플레이어)가 펀치중이 아닐때 펀치 키의 처리를 하는 것이 가능함
+    if(!keyS && !keyW && !keyD && !wakgood.punch){
+        return true;
+    }
+    else return false;
+}
