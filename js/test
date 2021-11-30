@@ -85,12 +85,9 @@ let header = document.createElement("div");
 let closeBtn = document.createElement("button");
 let timerText = document.createElement("p");
 let scoreText = document.createElement("p");
-let endScoreDiv = document.createElement("div");
 let endScoreText = document.createElement("p");
-
 let roleBoxImg = document.createElement("img");
 let roleCloseBtn = document.createElement("button");
-
 roleCloseBtn.style.backgroundImage = 'url("./img/closeBtn.png")'; roleCloseBtn.style.width = '30px'; roleCloseBtn.style.height = '30px';
  roleCloseBtn.style.marginLeft = '1200px'; roleCloseBtn.style.marginTop = '50px';
 roleBoxImg.src = "./img/rolebox.png"; roleBoxImg.style.objectFit = 'cover';
@@ -100,12 +97,9 @@ scoreText.style.display = 'inline-block'; scoreText.style.margin = "10px"; score
  scoreText.style.fontSize="25px"; scoreText.style.fontWeight = '900'; scoreText.style.marginLeft = '30px'; scoreText.style.width = '250px';
  scoreText.style.fontFamily = "Neo둥근모 Code", "Neo둥근모Code", "neodgm-code";
 
-endScoreText.style.fontSize="50px"; endScoreText.style.fontWeight = '900'; endScoreText.style.paddingTop = '80px';
-endScoreText.style.fontFamily = "Neo둥근모 Code", "Neo둥근모Code", "neodgm-code"; endScoreText.style.textAlign = "center";
-
-endScoreDiv.style.textAlignLast = 'bottom'; endScoreDiv.style.backgroundImage = 'url(./img/scoreBox.png)';
-endScoreDiv.style.marginLeft = '450px';  endScoreDiv.style.marginTop = '100px';endScoreDiv.style.height = '150px'; 
-endScoreDiv.style.width = '250px';
+ endScoreText.style.display = 'inline-block'; scoreText.style.margin = "10px"; scoreText.textContent = "SCORE : 0";
+ endScoreText.style.fontSize="85px"; scoreText.style.fontWeight = '900'; scoreText.style.marginLeft = '100px'; scoreText.style.width = '250px';
+ endScoreText.style.fontFamily = "Neo둥근모 Code", "Neo둥근모Code", "neodgm-code";
 
 timerText.style.display = 'inline-block'; timerText.style.margin = "10px"; timerText.textContent = "TIMER : 60";
  timerText.style.fontFamily = "Neo둥근모 Code", "Neo둥근모Code", "neodgm-code";
@@ -113,7 +107,10 @@ timerText.style.fontSize="25px"; timerText.style.fontWeight = '900'; timerText.s
 
 header.id = "header"
 closeBtn.style.backgroundImage = 'url("./img/closeBtn.png")'; closeBtn.style.width = '30px'; closeBtn.style.height = '30px';
-closeBtn.style.margin = '20px'; closeBtn.style.marginLeft = '880px'; 
+closeBtn.style.margin = '20px'; closeBtn.style.marginLeft = '880px';
+header.append(timerText);
+header.append(scoreText);
+header.append(closeBtn);
 
 let mainSound = new sound("./bgm/mainSound.mp3");
 let gameBgdSound = new sound("./bgm/gameSound.mp3");
@@ -133,9 +130,8 @@ closeBtn.onclick = ()=>{
         gameEnd = true;
         canvas.remove();
         header.remove();
-        endScoreDiv.remove();
-        endScoreDiv.remove();
-        gameEnd = true;
+        endScoreText.remove();
+        closeBtn.remove();
         setTimeout(()=> {
             body.appendChild(mainScreen)
             gameTitle.style.animation = 'origin-padding-top 1s';
@@ -174,6 +170,7 @@ gameStartBtn.onclick= function(){
     //기다린 후 canvas를 붙여주고 게임을 실행한다.
     setTimeout(()=> {
         body.prepend(canvas);
+        body.prepend(header);
         gameInit(); //게임에 필요한 것들을 초기화.
         gameRefresh(); //update, render를 반복적으로 실행.
     }, 500);
@@ -186,7 +183,7 @@ let lastime = Date.now();
 let chimpanzees = [];
 let score = 0;
 let gameEnd = false;
-let timer = new gameTimer(1000*60);
+let timer = new gameTimer(1000 * 60);
 
 //키 입력 관련 선언
 let keyW = false;
@@ -206,11 +203,6 @@ const midPunch = 40;
 const topPunch = 60;
 
 function gameInit(){
-    header.append(timerText);
-    header.append(scoreText);
-    header.append(closeBtn);
-    body.prepend(header);
-
     score = 0;
     timer.start();
     mainSound.stop();
@@ -289,31 +281,34 @@ function gameUpdate(dt){
     if(wakgood.punch == true){
         chimpenzPunch(dt);
     }
-    
-    //시간 종료
-    if(timer.getTime() >= 1000*60){
-            gameBgdSound.stop();
-            chimpanzees = [];
+
+    if(timer.getTime() >= 1000 * 60){
+        gameBgdSound.stop();
+        chimpanzees = [];
             wakgood = null;
             gameEnd = true;
             canvas.remove();
             header.remove();
-            endScoreText.textContent = ""+score;
+            endScoreText.textContent = scoreText.textContent;
+            body.append(endScoreText);
             body.append(closeBtn);
-            endScoreDiv.append(endScoreText);
-            endScoreDiv.append(closeBtn);
-            body.append(endScoreDiv);
+            // setTimeout(()=> {
+            //     body.appendChild(mainScreen)
+            //     gameTitle.style.animation = 'origin-padding-top 1s';
+            //     gameStartBtn.style.animation = 'origin-margin-top 1s';
+            //     gameRoleBtn.style.animation = 'origin-margin-left 1s';
+            //     gameRankBtn.style.animation = 'origin-margin-right 1s';
+            // }, 500);
+            
     }
 
 }
 
 function gameRender(){
-    if(!gameEnd){
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        //모든 스프라이드(이미지) 그려주기.
-        wakgood.draw();
-        chimpanzees.forEach(element =>element.draw()); //존재하는 침팬지 모두 그리기
-    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //모든 스프라이드(이미지) 그려주기.
+    wakgood.draw();
+    chimpanzees.forEach(element =>element.draw()); //존재하는 침팬지 모두 그리기
 }
 
 function screenRefresh(){
@@ -341,7 +336,8 @@ function chimpenzPunch(dt){
                 chimpanzees.splice(0, 1); //맨 앞의 한개의 침팬지 삭제'
             }   
         }else if(wakgood.x+10 >= chimpanzees[0].x){ //허공에 침
-            chimpanzees[0].alive = false;
+            if(chimpanzees[0].id == chimpenz_id_basic){ chimpanzees[0].alive = false;}
+            if(chimpanzees[0].id == chimpenz_id_bonus && doublePunch){ chimpanzees[0].alive = false; doublePunch = false;}
             wakgood.state=punchState;
             //한 개 이상의 침팬지가 있어야함
             if(!chimpanzees[0].alive){
@@ -442,7 +438,9 @@ function keyProcess(){
         //더블 펀치
         wakgood.punch = true; wakgood.punchType = topPunch;
         doublePunch = true;
-        keyManager = [];
+        keyManager.shift();
+        keyManager.shift();
+        keyManager.shift();
         keyIdx = 0;
     }
 
@@ -468,10 +466,7 @@ var seqSpaceTime = new gameTimer(100); //연속 스페이스 가능 시간
 document.addEventListener('keydown', function(e){
     if(e.code === 'KeyW'){  keyW = true; }
     if(e.code === 'KeyS'){ keyS = true; }
-    if(e.code === 'Space'&& punchKeyInputPssible()){ 
-        keySpace = true; seqSpaceTime.start();
-        
-    }
+    if(e.code === 'Space'&& punchKeyInputPssible()){ keySpace = true; seqSpaceTime.start();}
     if(e.code === 'Space'){
         if(chimpanzees[0].id == chimpenz_id_bonus){
             if(keyIdx == 0 || keyIdx == 2){
