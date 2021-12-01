@@ -4,12 +4,13 @@
     }
     body {
         overflow:hidden;
-        height: 860px;
+        height: 760px;
         width: 100%;
         margin: 0;
         background-image: url("./img/background.png");
         background-repeat: no-repeat;
         background-size: 100% 100%;
+        font-family: "Neo둥근모 Code", "Neo둥근모Code", "neodgm-code";
     }
     button{
         background-color: transparent;
@@ -17,24 +18,40 @@
     }
 
     @keyframes go-margin-left{        /* 애니메이션 이름*/
-        from { margin-left: 0px; }             /* margin-left 0px 부터 애니메이션 시작 */
-        to { margin-left: 100%; } /* margin-left 값이 100%-50px 될 때까지 애니메이션 적용 */
+        from { margin-left: 0; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-left: 100%; } /* margin-left 값이 100% 될 때까지 애니메이션 적용 */
       }
       @keyframes go-margin-right{        /* 애니메이션 이름*/
-        from { margin-right: 0px; }             /* margin-left 0px 부터 애니메이션 시작 */
-        to { margin-right: 100%; } /* margin-left 값이 100%-50px 될 때까지 애니메이션 적용 */
+        from { margin-right: 0; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-right: 100%; } /* margin-right 값이 100% 될 때까지 애니메이션 적용 */
       }
       @keyframes go-padding-top{    
-        from { padding-top: 0px; }          
+        from { padding-top: 0; }          
         to { padding-top: 100%; } /* 2000은 title 이미지의 넓이*/
       }
       @keyframes go-margin-top{    
-        from { margin-top: 0px; }          
+        from { margin-top: 0; }          
         to { margin-top: 100%; } 
       }
 
+      @keyframes origin-margin-left{        /* 애니메이션 이름*/
+        from { margin-left: 100%; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-left: 0; } /* margin-left 값이 100% 될 때까지 애니메이션 적용 */
+      }
+      @keyframes origin-margin-right{        /* 애니메이션 이름*/
+        from { margin-right: 100%; }             /* margin-left 0px 부터 애니메이션 시작 */
+        to { margin-right: 0; } /* margin-right 값이 100% 될 때까지 애니메이션 적용 */
+      }
+      @keyframes origin-padding-top{    
+        from { padding-top: 100%; }          
+        to { padding-top: 0; } /* 2000은 title 이미지의 넓이*/
+      }
+      @keyframes origin-margin-top{    
+        from { margin-top: 100%; }          
+        to { margin-top: 0; } 
+      }
     .gameTitle{
-        padding-top: 150px;
+        padding-top: 100px;
         text-align: center;
     }
     .gameTitle img{
@@ -50,9 +67,9 @@
         text-align: center;
     }
     .btnAbove img{
-        width: 220px;
+        width: 250px;
     }
     .btnBelow img{
-        width: 200px;
+        width: 110px;
     }
     
